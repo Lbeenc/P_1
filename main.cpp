@@ -1,6 +1,4 @@
 #include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include <iostream>
 
 #include "node.h"
@@ -15,37 +13,34 @@ static void printUsage() {
 }
 
 int main(int argc, char* argv[]) {
-    // Valid:
-    //   argc == 1  -> read from stdin (keyboard or redirected)
-    //   argc == 2  -> read from filename
-    // Invalid:
-    //   argc > 2   -> error
-    if (argc > 2) {
+    const int MIN_ARGS = 1;
+    const int MAX_ARGS = 2;
+
+    FILE* inFile = stdin;
+    const char* baseName = "out"; // required for keyboard input OR stdin redirection
+
+    // improper usage
+    if (argc < MIN_ARGS || argc > MAX_ARGS) {
         printUsage();
         return 1;
     }
 
-    FILE* in = stdin;
-    const char* baseName = "out";   // default for keyboard or redirection
-
-    if (argc == 2) {
+    // P1 filename -> read from filename and baseName is filename
+    if (argc == MAX_ARGS) {
         baseName = argv[1];
-        in = fopen(argv[1], "r");
-        if (!in) {
+        inFile = fopen(argv[1], "r");
+        if (inFile == nullptr) {
             cerr << "Error: Cannot open file '" << argv[1] << "'\n";
             return 1;
         }
     }
 
-    // Build tree from input source (file or stdin)
-    node_t* root = buildTree(in);
+    node_t* root = buildTree(inFile);
 
-    // Close only if we opened a file (not stdin)
-    if (in != stdin) {
-        fclose(in);
+    if (inFile != stdin) {
+        fclose(inFile);
     }
 
-    // Traversals write baseName.levelorder / .preorder / .postorder
     traverseLevelOrder(root, baseName);
     traversePreOrder(root, baseName);
     traversePostOrder(root, baseName);
