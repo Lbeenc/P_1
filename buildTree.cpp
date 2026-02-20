@@ -1,18 +1,17 @@
 #include "buildTree.h"
 
 #include <cctype>
-#include <cstring>
 #include <iostream>
 #include <string>
 
 using namespace std;
 
 static bool isAllowedChar(unsigned char c) {
-    // Allowed:
-    // - letters/digits (isalnum)
-    // - special ASCII 33..47:  ! " # $ % & ' ( ) * + , - . /
+    const int SPECIAL_MIN = 33;
+    const int SPECIAL_MAX = 47;
+
     if (isalnum(c)) return true;
-    if (c >= 33 && c <= 47) return true;
+    if (c >= SPECIAL_MIN && c <= SPECIAL_MAX) return true;
     return false;
 }
 
@@ -30,7 +29,7 @@ static void validateToken(const string& token) {
 }
 
 static node_t* insertToken(node_t* root, const string& token) {
-    int k = static_cast<unsigned char>(token[0]);
+    const int k = static_cast<unsigned char>(token[0]);
 
     if (root == nullptr) {
         node_t* n = new node_t(k);
@@ -43,9 +42,9 @@ static node_t* insertToken(node_t* root, const string& token) {
     } else if (k > root->key) {
         root->right = insertToken(root->right, token);
     } else {
-        // same key -> append in input order
-        root->items.push_back(token);
+        root->items.push_back(token); // preserve input order
     }
+
     return root;
 }
 
@@ -58,16 +57,17 @@ node_t* buildTree(FILE* in) {
     node_t* root = nullptr;
     bool sawAny = false;
 
-    // Read whitespace-separated "strings" of unknown count
-    char buf[1024];
-    while (fscanf(in, "%1023s", buf) == 1) {
+    const int BUF_SIZE = 1024;
+    const int MAX_SCAN = 1023; // keep room for null terminator
+    char buf[BUF_SIZE];
+
+    while (fscanf(in, "%1023s", buf) == 1) { // MAX_SCAN matches format
         sawAny = true;
+
         string token(buf);
-
-        // Validate all chars and also ensure token not empty
         if (token.empty()) continue;
-        validateToken(token);
 
+        validateToken(token);
         root = insertToken(root, token);
     }
 
