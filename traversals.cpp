@@ -9,11 +9,11 @@
 using namespace std;
 
 static void printNodeLine(ofstream& out, node_t* n, int depth) {
-    // indent = 4 * depth spaces
-    out << string(depth * 4, ' ');
+    const int INDENT_SPACES = 4;
+
+    out << string(depth * INDENT_SPACES, ' ');
     out << depth << " " << n->key;
 
-    // print list items separated by single spaces
     for (size_t i = 0; i < n->items.size(); i++) {
         out << " " << n->items[i];
     }
@@ -24,7 +24,6 @@ static string makeName(const char base[], const char* suffix) {
     return string(base) + suffix;
 }
 
-// -------- Level Order (BFS) --------
 void traverseLevelOrder(node_t* root, const char basefilename[]) {
     ofstream out(makeName(basefilename, ".levelorder"));
     if (!out) {
@@ -37,17 +36,16 @@ void traverseLevelOrder(node_t* root, const char basefilename[]) {
     q.push({root, 0});
 
     while (!q.empty()) {
-        auto [cur, depth] = q.front();
+        auto cur = q.front();
         q.pop();
 
-        printNodeLine(out, cur, depth);
+        printNodeLine(out, cur.first, cur.second);
 
-        if (cur->left)  q.push({cur->left, depth + 1});
-        if (cur->right) q.push({cur->right, depth + 1});
+        if (cur.first->left)  q.push({cur.first->left, cur.second + 1});
+        if (cur.first->right) q.push({cur.first->right, cur.second + 1});
     }
 }
 
-// -------- Pre Order (Root, Left, Right) --------
 static void preOrderRec(node_t* n, int depth, ofstream& out) {
     if (!n) return;
     printNodeLine(out, n, depth);
@@ -64,7 +62,6 @@ void traversePreOrder(node_t* root, const char basefilename[]) {
     preOrderRec(root, 0, out);
 }
 
-// -------- Post Order (Left, Right, Root) --------
 static void postOrderRec(node_t* n, int depth, ofstream& out) {
     if (!n) return;
     postOrderRec(n->left, depth + 1, out);
